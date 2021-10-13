@@ -24,30 +24,48 @@ class SecondViewController: UIViewController,UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Add Contacts"
-      firstName.addTarget(self, action:#selector(willCheckAndDisplayErrorsForName(firstName:)), for: .editingChanged)
-       lastName.addTarget(self, action:#selector(willCheckAndDisplayErrorsForName2(lastName:)), for: .editingChanged)
+        firstName.addTarget(self, action:#selector(willCheckAndDisplayErrorsForName(firstName:)), for: .editingChanged)
+        lastName.addTarget(self, action:#selector(willCheckAndDisplayErrorsForName2(lastName:)), for: .editingChanged)
         telephoneLabel.delegate = self
+        
         updateLabels()
         // Do any additional setup after loading the view.
+    }
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        // OR with Tag like textfield.tag == 45
+        if textField == telephoneLabel {
+            if validate(value: telephoneLabel.text ?? " ") {
+                errorLabel.text = ""
+            }
+            else {
+                errorLabel.text = "Enter numbers only"
+            }
+        }
+    }
+    func validate(value: String) -> Bool {
+        let PHONE_REGEX = "^\\d{3}-\\d{3}-\\d{4}$"
+        let phoneTest = NSPredicate(format: "SELF MATCHES %@", PHONE_REGEX)
+        let result = phoneTest.evaluate(with: value)
+        return result
     }
     
     
     @objc func willCheckAndDisplayErrorsForName(firstName : UITextField){
-      if firstName.text?.count ?? 0 < 3 {
-           errorLabel.text = "First Name missing .Pls Add a Valid first Name"
+        if firstName.text?.count ?? 0 < 3 {
+            errorLabel.text = "First Name missing .Pls Add a Valid first Name"
         }else {
             errorLabel.text = " "
         }
     }
     @objc func willCheckAndDisplayErrorsForName2(lastName : UITextField){
-      if lastName.text?.count ?? 0 < 3 {
-           errorLabel.text = "Last Name missing .Pls Add a Valid last Name"
+        if lastName.text?.count ?? 0 < 3 {
+            errorLabel.text = "Last Name missing .Pls Add a Valid last Name"
         }else {
             errorLabel.text = " "
         }
     }
-   
-  
+    
+    
     
     
     
@@ -57,7 +75,7 @@ class SecondViewController: UIViewController,UITextFieldDelegate {
     @IBOutlet weak var firstName: UITextField!
     
     @IBOutlet weak var lastName: UITextField!
-   
+    
     
     @IBAction func saveContact(_ sender: Any) {
         if isUpdate {
@@ -68,21 +86,7 @@ class SecondViewController: UIViewController,UITextFieldDelegate {
         }
     }
     @IBOutlet weak var telephoneLabel: UITextField!
-    func textFieldDidEndEditing(_ textField: UITextField) {
-         // OR with Tag like textfield.tag == 45
-          if validate(value: telephoneLabel.text ?? " ") {
-              errorLabel.text = ""
-          }
-          else {
-              errorLabel.text = "Enter numbers only"
-          }
-          }
-      func validate(value: String) -> Bool {
-          let PHONE_REGEX = "^\\d{3}-\\d{3}-\\d{4}$"
-          let phoneTest = NSPredicate(format: "SELF MATCHES %@", PHONE_REGEX)
-          let result = phoneTest.evaluate(with: value)
-          return result
-      }
+    
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         // Get the new view controller using segue.destination.
@@ -95,7 +99,7 @@ extension SecondViewController{
         let newContact = CNMutableContact()
         newContact.givenName = firstName.text ?? ""
         newContact.familyName = lastName.text ?? ""
-       
+        
         let homePhone = CNLabeledValue(label: CNLabelHome,
                                        value: CNPhoneNumber(stringValue: telephoneLabel.text ?? ""))
         newContact.phoneNumbers = [homePhone]
@@ -110,11 +114,11 @@ extension SecondViewController{
         } catch let err{
             print("Failed to save the contact. \(err)")
         }
-                if self.delegate != nil {
+        if self.delegate != nil {
             let tempFullName =  (firstName.text ?? "") + " " + (lastName.text ?? "")
             let currentContact = FetchedContact(firstName: firstName.text ?? "", lastName: lastName.text ?? "", fullName: tempFullName, telephone: telephoneLabel.text ?? "")
             self.delegate?.sendDataToHomeViewController(myData: currentContact)
-                }
+        }
         didShowSuccessAlert()
     }
     private func didShowSuccessAlert() {
@@ -129,8 +133,8 @@ extension SecondViewController{
     
     private func didShowError() {
         let alert = UIAlertController(title: "Alert", message: "Contact coudn't be added, Validation failed!!", preferredStyle: .alert)
-       print("Invalid Details Entered")
-        }
+        print("Invalid Details Entered")
+    }
     
     
     func updateLabels(){
