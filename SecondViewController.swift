@@ -12,7 +12,7 @@ protocol MyDataSendingProtocol {
     
 }
 
-class SecondViewController: UIViewController {
+class SecondViewController: UIViewController,UITextFieldDelegate {
     var delegate : MyDataSendingProtocol? = nil
     lazy var currContact : FetchedContact? = nil
     var index = 0
@@ -26,7 +26,7 @@ class SecondViewController: UIViewController {
         title = "Add Contacts"
       firstName.addTarget(self, action:#selector(willCheckAndDisplayErrorsForName(firstName:)), for: .editingChanged)
        lastName.addTarget(self, action:#selector(willCheckAndDisplayErrorsForName2(lastName:)), for: .editingChanged)
-       telephoneLabel.addTarget(self, action:#selector(willCheckAndDisplayErrorsForTelephone(telephoneLabel:)), for: .editingChanged)
+        telephoneLabel.delegate = self
         updateLabels()
         // Do any additional setup after loading the view.
     }
@@ -46,25 +46,8 @@ class SecondViewController: UIViewController {
             errorLabel.text = " "
         }
     }
-    @objc func willCheckAndDisplayErrorsForTelephone(telephoneLabel : UITextField) {
-        if telephoneLabel.text?.count ?? 0 < 9 {
-            errorLabel.text = "Contact must be of 10 digits"
-        }else {
-            if validate(value: telephoneLabel.text ?? "") {
-                errorLabel.text = ""
-            }
-            else {
-                errorLabel.text = "Contact must be of number type"
-            }
-        }
-        
-    }
-    func validate(value: String) -> Bool {
-                let PHONE_REGEX = "^\\d{3}-\\d{3}-\\d{4}$"
-                let phoneTest = NSPredicate(format: "SELF MATCHES %@", PHONE_REGEX)
-                let result = phoneTest.evaluate(with: value)
-                return result
-            }
+   
+  
     
     
     
@@ -85,6 +68,21 @@ class SecondViewController: UIViewController {
         }
     }
     @IBOutlet weak var telephoneLabel: UITextField!
+    func textFieldDidEndEditing(_ textField: UITextField) {
+         // OR with Tag like textfield.tag == 45
+          if validate(value: telephoneLabel.text ?? " ") {
+              errorLabel.text = ""
+          }
+          else {
+              errorLabel.text = "Enter numbers only"
+          }
+          }
+      func validate(value: String) -> Bool {
+          let PHONE_REGEX = "^\\d{3}-\\d{3}-\\d{4}$"
+          let phoneTest = NSPredicate(format: "SELF MATCHES %@", PHONE_REGEX)
+          let result = phoneTest.evaluate(with: value)
+          return result
+      }
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         // Get the new view controller using segue.destination.
@@ -116,8 +114,8 @@ extension SecondViewController{
             let tempFullName =  (firstName.text ?? "") + " " + (lastName.text ?? "")
             let currentContact = FetchedContact(firstName: firstName.text ?? "", lastName: lastName.text ?? "", fullName: tempFullName, telephone: telephoneLabel.text ?? "")
             self.delegate?.sendDataToHomeViewController(myData: currentContact)
+                }
         didShowSuccessAlert()
-        }
     }
     private func didShowSuccessAlert() {
         let alert = UIAlertController(title: "Alert", message: "Contact saved Successfully", preferredStyle: .alert)
